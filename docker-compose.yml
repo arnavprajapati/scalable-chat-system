@@ -1,0 +1,33 @@
+# Scalable Chat System — Docker Compose
+# Provisions local infrastructure: RabbitMQ message broker + Redis cache
+# Run: docker-compose up -d
+
+version: "3.9"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: chat_rabbitmq
+    ports:
+      - "5672:5672"       # AMQP protocol port (used by services)
+      - "15672:15672"     # RabbitMQ management UI (http://localhost:15672)
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: chat_redis
+    ports:
+      - "6379:6379"       # Redis default port (used by user-service for OTP storage)
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:
+  redis_data:
