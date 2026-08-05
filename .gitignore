@@ -1,0 +1,12 @@
+node_modules/
+.next/
+dist/
+build/
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+*.tsbuildinfo
+build-history.ps1
+build-history.sh
