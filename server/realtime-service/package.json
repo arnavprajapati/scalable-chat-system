@@ -1,7 +1,7 @@
 {
-  "name": "chat",
+  "name": "realtime-service",
   "version": "1.0.0",
-  "description": "",
+  "description": "Realtime messaging microservice - Socket.IO rooms, conversation persistence and media uploads",
   "main": "index.js",
   "type": "module",
   "scripts": {

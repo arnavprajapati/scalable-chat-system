@@ -367,7 +367,7 @@ const ChatApp = () => {
 
   if (loading) return <Loading />;
   return (
-    <div className="min-h-screen flex bg-transparent relative overflow-hidden">
+    <div className="h-screen flex bg-transparent relative overflow-hidden">
       <ChatSidebar
         sidebarOpen={siderbarOpen}
         setSidebarOpen={setSiderbarOpen}
@@ -382,7 +382,7 @@ const ChatApp = () => {
         createChat={createChat}
         onlineUsers={onlineUsers}
       />
-      <div className="flex-1 min-w-0 flex flex-col justify-between p-4 bg-transparent">
+      <div className="flex-1 min-w-0 flex flex-col bg-transparent">
         <ChatHeader
           user={user}
           setSidebarOpen={setSiderbarOpen}

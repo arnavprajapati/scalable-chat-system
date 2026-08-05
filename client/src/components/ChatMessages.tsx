@@ -34,8 +34,8 @@ const ChatMessages = ({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [selectedUser, uniqueMessages]);
   return (
-    <div className="flex-1 overflow-hidden">
-      <div className="h-full max-h-[calc(100vh-215px)] overflow-y-auto p-2 space-y-2 custom-scroll">
+    <div className="flex-1 min-h-0">
+      <div className="h-full overflow-y-auto px-4 md:px-6 py-4 space-y-2 custom-scroll">
         {!selectedUser ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-6">
             <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-[#141414] flex items-center justify-center mb-4">

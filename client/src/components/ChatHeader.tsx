@@ -30,13 +30,13 @@ const ChatHeader = ({
       </div>
 
       {/* chat header */}
-      <div className="mb-4 rounded-2xl bg-white/95 dark:bg-[#0f0f0f]/95 backdrop-blur-md border border-gray-200 dark:border-white/10 p-4 md:p-6">
-        <div className="flex items-center gap-4">
+      <div className="shrink-0 sticky top-0 z-20 bg-white/90 dark:bg-[#0f0f0f]/90 backdrop-blur-md border-b border-gray-200 dark:border-white/10 px-4 md:px-6 py-3">
+        <div className="flex items-center gap-3">
           {user ? (
             <>
               <div className="relative shrink-0">
-                <div className="w-14 h-14 rounded-full bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center shadow-md">
-                  <UserCircle className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+                <div className="w-11 h-11 rounded-full bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center">
+                  <UserCircle className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                 </div>
                 {/* online user setup */}
                 {isOnlineUser && (
@@ -48,11 +48,9 @@ const ChatHeader = ({
 
               {/* user info */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-1">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white truncate">
-                    {user.name}
-                  </h2>
-                </div>
+                <h2 className="text-lg font-bold leading-tight text-gray-900 dark:text-white truncate">
+                  {user.name}
+                </h2>
 
                 <div className="flex items-center gap-2">
                   {isTyping ? (
@@ -90,15 +88,15 @@ const ChatHeader = ({
               </div>
             </>
           ) : (
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 shrink-0 rounded-2xl bg-gray-100 dark:bg-[#141414] flex items-center justify-center">
-                <UserCircle className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 shrink-0 rounded-full bg-gray-100 dark:bg-[#141414] flex items-center justify-center">
+                <UserCircle className="w-6 h-6 text-gray-500 dark:text-gray-400" />
               </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <div className="min-w-0">
+                <h2 className="text-lg font-bold leading-tight text-gray-900 dark:text-white">
                   Select a conversation
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-[13px] text-gray-500 dark:text-gray-400">
                   Choose a chat from the sidebar to start messaging
                 </p>
               </div>

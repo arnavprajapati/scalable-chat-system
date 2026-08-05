@@ -31,7 +31,7 @@ const MessageInput = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-3 border-t border-gray-200 dark:border-white/10 pt-3"
+      className="shrink-0 flex flex-col gap-3 border-t border-gray-200 dark:border-white/10 px-4 md:px-6 pt-3 pb-4"
     >
       {imageFile && (
         <div className="relative w-fit">

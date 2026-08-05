@@ -1,7 +1,7 @@
 {
-  "name": "user",
+  "name": "auth-service",
   "version": "1.0.0",
-  "description": "",
+  "description": "Authentication microservice - OTP issuance, JWT signing and user profile management",
   "main": "index.js",
   "type": "module",
   "scripts": {

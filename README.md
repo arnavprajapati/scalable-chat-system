@@ -8,34 +8,34 @@ A real-time, event-driven chat application built with a microservice architectur
 
 ```
                        ┌─────────────────────────┐
-                       │   Next.js 15 Frontend   │
+                       │  Next.js 15 Client      │
                        │     (Port 3000)         │
                        └───────────┬─────────────┘
                                    │
          ┌─────────────────────────┼─────────────────────────┐
          │ HTTP                    │ HTTP / WebSockets       │ HTTP
          ▼                         ▼                         ▼
-┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
-│  User Service   │       │  Chat Service   │       │  Mail Service   │
-│   (Port 8000)   │       │   (Port 8002)   │       │   (Port 8001)   │
-└────────┬────────┘       └────────┬────────┘       └─────────────────┘
-         │                         │                         ▲
-   ┌─────┴─────┐             ┌─────┴─────┐                   │ RabbitMQ
-   ▼           ▼             ▼           ▼                   │ Consumer
-MongoDB      Redis        MongoDB    Cloudinary              │
-(Users)     (OTP/Rate)    (Chats)     (Images) ──────────────┘
+┌─────────────────┐       ┌──────────────────┐      ┌────────────────────┐
+│  Auth Service   │       │ Realtime Service │      │  Dispatch Service  │
+│   (Port 8000)   │       │   (Port 8002)    │      │    (Port 8001)     │
+└────────┬────────┘       └────────┬─────────┘      └────────────────────┘
+         │                         │                          ▲
+   ┌─────┴─────┐             ┌─────┴─────┐                    │ RabbitMQ
+   ▼           ▼             ▼           ▼                    │ Consumer
+MongoDB      Redis        MongoDB    Cloudinary               │
+(Users)     (OTP/Rate)    (Chats)     (Images) ───────────────┘
 ```
 
 ---
 
 ## 🚀 Microservices Breakdown
 
-| Service | Port | Primary Responsibilities | Tech Stack |
-|---|---|---|---|
-| **User Service** | `8000` | User auth, OTP generation, JWT signing, profile management | Express, MongoDB, Redis, RabbitMQ |
-| **Mail Service** | `8001` | Asynchronous OTP email dispatch | Express, RabbitMQ Consumer, Nodemailer |
-| **Chat Service** | `8002` | Real-time messaging, Socket.IO rooms, media uploads | Express, Socket.IO, MongoDB, Cloudinary |
-| **Frontend** | `3000` | User dashboard, active chats, real-time message sync | Next.js 15, React 19, Tailwind CSS v4 |
+| Service | Directory | Port | Primary Responsibilities | Tech Stack |
+|---|---|---|---|---|
+| **Auth Service** | `server/auth-service` | `8000` | User auth, OTP generation, JWT signing, profile management | Express, MongoDB, Redis, RabbitMQ |
+| **Dispatch Service** | `server/dispatch-service` | `8001` | Asynchronous OTP email dispatch | Express, RabbitMQ Consumer, Nodemailer |
+| **Realtime Service** | `server/realtime-service` | `8002` | Real-time messaging, Socket.IO rooms, media uploads | Express, Socket.IO, MongoDB, Cloudinary |
+| **Client** | `client` | `3000` | User dashboard, active chats, real-time message sync | Next.js 15, React 19, Tailwind CSS v4 |
 
 ---
 
@@ -46,19 +46,19 @@ MongoDB      Redis        MongoDB    Cloudinary              │
 docker-compose up -d
 ```
 
-### 2. Start Microservices & Frontend
+### 2. Start Microservices & Client
 ```bash
-# Terminal 1: User Service
-cd backend/user && npm run dev
+# Terminal 1: Auth Service
+cd server/auth-service && npm run dev
 
-# Terminal 2: Mail Service
-cd backend/mail && npm run dev
+# Terminal 2: Dispatch Service
+cd server/dispatch-service && npm run dev
 
-# Terminal 3: Chat Service
-cd backend/chat && npm run dev
+# Terminal 3: Realtime Service
+cd server/realtime-service && npm run dev
 
-# Terminal 4: Next.js Frontend
-cd frontend && npm run dev
+# Terminal 4: Next.js Client
+cd client && npm run dev
 ```
 
 ---
