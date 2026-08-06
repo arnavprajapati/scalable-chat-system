@@ -4,6 +4,7 @@ import TryCatch from "../config/TryCatch.js";
 import { redisClient } from "../index.js";
 import { AuthenticatedRequest } from "../middleware/isAuth.js";
 import { User } from "../model/User.js";
+import { normalizeUsername, validateUsername } from "../config/username.js";
 
 export const loginUser = TryCatch(async (req, res) => {
   const { email } = req.body;
@@ -107,6 +108,81 @@ export const updateName = TryCatch(async (req: AuthenticatedRequest, res) => {
     user,
     token,
   });
+});
+
+export const checkUsername = TryCatch(async (req, res) => {
+  const raw = req.query.username;
+
+  if (typeof raw !== "string") {
+    res.status(400).json({
+      available: false,
+      reason: "Username required",
+    });
+    return;
+  }
+
+  const { ok, reason } = validateUsername(raw);
+
+  if (!ok) {
+    res.json({ available: false, reason });
+    return;
+  }
+
+  const existing = await User.findOne({ usernameLower: normalizeUsername(raw) });
+
+  if (existing) {
+    res.json({ available: false, reason: "Username already taken" });
+    return;
+  }
+
+  res.json({ available: true });
+});
+
+export const setUsername = TryCatch(async (req: AuthenticatedRequest, res) => {
+  const raw = req.body.username;
+
+  if (typeof raw !== "string") {
+    res.status(400).json({ message: "Username required" });
+    return;
+  }
+
+  const { ok, reason } = validateUsername(raw);
+
+  if (!ok) {
+    res.status(400).json({ message: reason });
+    return;
+  }
+
+  const username = raw.trim();
+  const usernameLower = normalizeUsername(raw);
+
+  try {
+    // Conditional on the field being absent so a username can only ever be set once.
+    const user = await User.findOneAndUpdate(
+      { _id: req.user?._id, usernameLower: { $exists: false } },
+      { $set: { username, usernameLower } },
+      { new: true }
+    );
+
+    if (!user) {
+      res.status(409).json({ message: "Username already set" });
+      return;
+    }
+
+    res.json({
+      message: "Username Updated",
+      user,
+      token: generateToken(user),
+    });
+  } catch (err: any) {
+    // The unique index is what actually enforces uniqueness; the availability
+    // check is only advisory. Translate the raw driver error into a clean message.
+    if (err.code === 11000) {
+      res.status(409).json({ message: "Username already taken" });
+      return;
+    }
+    throw err;
+  }
 });
 
 export const getAllUsers = TryCatch(async (req: AuthenticatedRequest, res) => {

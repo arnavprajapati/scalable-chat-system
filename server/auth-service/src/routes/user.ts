@@ -1,9 +1,11 @@
 import express from "express";
 import {
+  checkUsername,
   getAllUsers,
   getAUser,
   loginUser,
   myProfile,
+  setUsername,
   updateName,
   verifyUser,
 } from "../controllers/user.js";
@@ -15,6 +17,8 @@ router.post("/login", loginUser);
 router.post("/verify", verifyUser);
 router.get("/me", isAuth, myProfile);
 router.get("/user/all", isAuth, getAllUsers);
+router.get("/username/check", isAuth, checkUsername);
+router.post("/username/set", isAuth, setUsername);
 router.get("/user/:id", getAUser);
 router.post("/update/user", isAuth, updateName);
 

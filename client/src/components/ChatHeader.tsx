@@ -52,6 +52,12 @@ const ChatHeader = ({
                   {user.name}
                 </h2>
 
+                {user.username && (
+                  <p className="text-[13px] text-gray-500 dark:text-gray-400 truncate">
+                    @{user.username}
+                  </p>
+                )}
+
                 <div className="flex items-center gap-2">
                   {isTyping ? (
                     <div className="flex items-center gap-2">

@@ -1,19 +1,35 @@
 "use client";
 import { useAppData, user_service } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Cookies from "js-cookie";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Loading from "@/components/Loading";
 import ThemeToggle from "@/components/ThemeToggle";
-import { ArrowLeft, Save, User, UserCircle } from "lucide-react";
+import { ArrowLeft, AtSign, Save, User, UserCircle } from "lucide-react";
+import { validateUsername } from "@/lib/username";
+
+type UsernameStatus =
+  | { state: "idle" }
+  | { state: "invalid"; reason: string }
+  | { state: "checking" }
+  | { state: "taken" }
+  | { state: "available" };
 
 const ProfilePage = () => {
   const { user, isAuth, loading, setUser } = useAppData();
 
   const [isEdit, setIsEdit] = useState(false);
   const [name, setName] = useState<string | undefined>("");
+
+  const [username, setUsername] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>({
+    state: "idle",
+  });
+  const [savingUsername, setSavingUsername] = useState(false);
+
+  const checkIdRef = useRef(0);
 
   const router = useRouter();
 
@@ -47,6 +63,84 @@ const ProfilePage = () => {
       setIsEdit(false);
     } catch (error: any) {
       toast.error(error.response?.data?.message || error.message || "Failed to update profile");
+    }
+  };
+
+  useEffect(() => {
+    if (!username.trim()) {
+      setUsernameStatus({ state: "idle" });
+      return;
+    }
+
+    const { ok, reason } = validateUsername(username);
+    if (!ok) {
+      setUsernameStatus({ state: "invalid", reason: reason! });
+      return;
+    }
+
+    setUsernameStatus({ state: "checking" });
+    const requestId = ++checkIdRef.current;
+
+    const timer = setTimeout(async () => {
+      try {
+        const token = Cookies.get("token");
+        const { data } = await axios.get(
+          `${user_service}/api/v1/username/check`,
+          {
+            params: { username },
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (requestId !== checkIdRef.current) return;
+
+        if (data.available) {
+          setUsernameStatus({ state: "available" });
+        } else {
+          setUsernameStatus({ state: "taken" });
+        }
+      } catch {
+        if (requestId !== checkIdRef.current) return;
+        setUsernameStatus({ state: "taken" });
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [username]);
+
+  const usernameSubmitHandler = async (e: any) => {
+    e.preventDefault();
+    setSavingUsername(true);
+    const token = Cookies.get("token");
+    try {
+      const { data } = await axios.post(
+        `${user_service}/api/v1/username/set`,
+        { username: username.trim() },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      Cookies.set("token", data.token, {
+        expires: 15,
+        secure: false,
+        path: "/",
+      });
+
+      toast.success(data.message);
+      setUser(data.user);
+      setUsername("");
+      setUsernameStatus({ state: "idle" });
+    } catch (error: any) {
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to set username"
+      );
+    } finally {
+      setSavingUsername(false);
     }
   };
 
@@ -146,6 +240,68 @@ const ProfilePage = () => {
                       Edit
                     </button>
                   </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
+                  Username
+                </label>
+
+                {user?.username ? (
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-gray-100 dark:bg-[#0a0a0a] border border-gray-200 dark:border-white/10">
+                    <span className="text-gray-900 dark:text-white font-bold truncate">
+                      @{user.username}
+                    </span>
+                  </div>
+                ) : (
+                  <form onSubmit={usernameSubmitHandler} className="space-y-4">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={username}
+                        placeholder="Choose a username"
+                        onChange={(e) => setUsername(e.target.value)}
+                        className="w-full pl-4 pr-11 py-3 rounded-xl bg-gray-100 dark:bg-[#141414] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 transition-colors focus:outline-none focus:border-gray-300 dark:focus:border-white/20"
+                      />
+                      <AtSign className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-gray-400" />
+                    </div>
+
+                    {usernameStatus.state !== "idle" && (
+                      <p
+                        className={`text-sm ${
+                          usernameStatus.state === "available"
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : usernameStatus.state === "checking"
+                            ? "text-gray-500 dark:text-gray-400"
+                            : "text-red-600 dark:text-red-400"
+                        }`}
+                      >
+                        {usernameStatus.state === "invalid"
+                          ? usernameStatus.reason
+                          : usernameStatus.state === "checking"
+                          ? "Checking…"
+                          : usernameStatus.state === "taken"
+                          ? "❌ Username already taken"
+                          : "✅ Username available"}
+                      </p>
+                    )}
+
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                      3–20 characters. Letters, numbers and underscores only.
+                      Usernames are permanent.
+                    </p>
+
+                    <button
+                      type="submit"
+                      disabled={
+                        usernameStatus.state !== "available" || savingUsername
+                      }
+                      className="cursor-pointer flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-900 text-white dark:bg-white dark:text-black font-bold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+                    >
+                      <Save className="w-4 h-4" /> Save Username
+                    </button>
+                  </form>
                 )}
               </div>
             </div>

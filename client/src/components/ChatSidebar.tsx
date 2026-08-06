@@ -108,13 +108,14 @@ const ChatSidebar = ({
             {/* users list */}
             <div className="flex flex-col gap-1 overflow-y-auto flex-1 pb-4 custom-scroll">
               {users
-                ?.filter(
-                  (u) =>
+                ?.filter((u) => {
+                  const query = searchQuery.toLocaleLowerCase();
+                  return (
                     u._id !== loggedInUser?._id &&
-                    u.name
-                      .toLowerCase()
-                      .includes(searchQuery.toLocaleLowerCase())
-                )
+                    (u.name.toLowerCase().includes(query) ||
+                      !!u.username?.toLowerCase().includes(query))
+                  );
+                })
                 .map((u) => (
                   <button
                     key={u._id}
@@ -137,6 +138,7 @@ const ChatSidebar = ({
                         </span>
                         <div className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">
                           {/* to show online offline text */}
+                          {u.username && `@${u.username} · `}
                           {onlineUsers.includes(u._id) ? "Online" : "Offline"}
                         </div>
                       </div>
