@@ -8,6 +8,7 @@ interface AvatarProps {
   user: User | null | undefined;
   size?: AvatarSize;
   online?: boolean;
+  onClick?: () => void;
 }
 
 const sizes: Record<AvatarSize, { box: string; icon: string }> = {
@@ -16,13 +17,16 @@ const sizes: Record<AvatarSize, { box: string; icon: string }> = {
   lg: { box: "w-20 h-20", icon: "w-12 h-12" },
 };
 
-const Avatar = ({ user, size = "md", online }: AvatarProps) => {
+const Avatar = ({ user, size = "md", online, onClick }: AvatarProps) => {
   const { box, icon } = sizes[size];
 
   return (
     <div className="relative shrink-0">
       <div
-        className={`${box} rounded-full overflow-hidden bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center`}
+        onClick={onClick}
+        className={`${box} rounded-full overflow-hidden bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center ${
+          onClick ? "cursor-pointer hover:ring-2 hover:ring-white/40 transition-all duration-200" : ""
+        }`}
       >
         {user?.avatar?.url ? (
           <img

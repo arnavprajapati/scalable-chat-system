@@ -1,6 +1,6 @@
 import { User } from "@/context/AppContext";
 import { Menu, MessagesSquare, X } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import Avatar from "./Avatar";
 
 interface ChatHeaderProps {
@@ -19,9 +19,36 @@ const ChatHeader = ({
   onCloseChat,
 }: ChatHeaderProps) => {
   const isOnlineUser = user && onlineUsers.includes(user._id);
+  const [profileOpen, setProfileOpen] = useState(false);
+
   return (
     <>
-      {/* mobile menu toggle */}
+      {profileOpen && user?.avatar?.url && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center"
+          style={{ animation: "fadeInP 0.2s ease" }}
+          onClick={() => setProfileOpen(false)}
+        >
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+          <button
+            onClick={() => setProfileOpen(false)}
+            className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <img
+            src={user.avatar.url}
+            alt={user.name}
+            onClick={(e) => e.stopPropagation()}
+            className="relative z-10 w-64 h-64 object-cover rounded-full shadow-2xl ring-4 ring-white/20"
+            style={{ animation: "zoomInP 0.25s cubic-bezier(.34,1.56,.64,1)" }}
+          />
+          <style>{`
+            @keyframes fadeInP { from { opacity:0 } to { opacity:1 } }
+            @keyframes zoomInP { from { opacity:0; transform:scale(0.7) } to { opacity:1; transform:scale(1) } }
+          `}</style>
+        </div>
+      )}
       <div className="sm:hidden fixed top-4 right-4 z-30">
         <button
           aria-label="Open sidebar"
@@ -32,21 +59,22 @@ const ChatHeader = ({
         </button>
       </div>
 
-      {/* chat header */}
       <div className="shrink-0 sticky top-0 z-20 bg-white/90 dark:bg-[#0f0f0f]/90 backdrop-blur-md border-b border-gray-200 dark:border-white/10 px-4 md:px-6 py-3">
         <div className="flex items-center gap-3">
           {user ? (
             <>
-              <Avatar user={user} size="md" online={!!isOnlineUser} />
+              <Avatar
+                user={user}
+                size="md"
+                online={!!isOnlineUser}
+                onClick={user?.avatar?.url ? () => setProfileOpen(true) : undefined}
+              />
 
-              {/* user info */}
               <div className="flex-1 min-w-0">
                 <h2 className="text-lg font-bold leading-tight text-gray-900 dark:text-white truncate">
                   {user.name}
                 </h2>
 
-                {/* min-h keeps the header from jumping as this line swaps
-                    between the typing indicator and the status line */}
                 <div className="flex items-center gap-2 min-h-[20px]">
                   {isTyping ? (
                     <>
@@ -74,7 +102,6 @@ const ChatHeader = ({
                 </div>
               </div>
 
-              {/* close the open chat and go back to the blank state */}
               <button
                 aria-label="Close chat"
                 title="Close chat"
