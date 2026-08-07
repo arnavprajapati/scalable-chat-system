@@ -356,8 +356,8 @@ const ProfilePage = () => {
                           : usernameStatus.state === "checking"
                           ? "Checking…"
                           : usernameStatus.state === "taken"
-                          ? "❌ Username already taken"
-                          : "✅ Username available"}
+                          ? "Username already taken"
+                          : "Username available"}
                       </p>
                     )}
 

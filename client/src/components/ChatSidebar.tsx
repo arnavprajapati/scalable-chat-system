@@ -142,8 +142,12 @@ const ChatSidebar = ({
           </div>
 
           {showAllUsers ? (
-            /* users list */
-            filteredUsers && filteredUsers.length > 0 ? (
+            !query ? (
+              <EmptyState
+                title="Search for someone"
+                hint="Type a name or @username to find people"
+              />
+            ) : filteredUsers && filteredUsers.length > 0 ? (
               <div className="flex flex-col gap-1 overflow-y-auto flex-1 pb-4 custom-scroll">
                 {filteredUsers.map((u) => (
                   <button
@@ -159,7 +163,6 @@ const ChatSidebar = ({
                           {u.name}
                         </span>
                         <div className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">
-                          {/* to show online offline text */}
                           {u.username && `@${u.username} · `}
                           {onlineUsers.includes(u._id) ? "Online" : "Offline"}
                         </div>
@@ -170,12 +173,8 @@ const ChatSidebar = ({
               </div>
             ) : (
               <EmptyState
-                title={query ? "No users found" : "No users yet"}
-                hint={
-                  query
-                    ? `Nothing matches "${searchQuery}"`
-                    : "Invite someone to get started"
-                }
+                title="No users found"
+                hint={`Nothing matches "${searchQuery}"`}
               />
             )
           ) : filteredChats && filteredChats.length > 0 ? (
