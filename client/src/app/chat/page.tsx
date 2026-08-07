@@ -248,7 +248,12 @@ const ChatApp = () => {
         false
       );
     } catch (error: any) {
-      toast.error(error.response?.data?.message || error.message || "Failed to send message");
+      toast.error(
+        error.response?.status === 413
+          ? "File too large."
+          : error.response?.data?.message || "Failed to send message"
+      );
+
     }
   };
 
