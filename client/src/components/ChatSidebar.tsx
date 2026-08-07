@@ -1,5 +1,6 @@
 import { User } from "@/context/AppContext";
 import {
+  Camera,
   CornerDownRight,
   CornerUpLeft,
   LogOut,
@@ -217,7 +218,7 @@ const ChatSidebar = ({
                       </div>
 
                       {latestMessage && (
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 min-w-0">
                           {isSentByMe ? (
                             <CornerUpLeft
                               size={13}
@@ -229,9 +230,23 @@ const ChatSidebar = ({
                               className="shrink-0 text-emerald-500 dark:text-emerald-400"
                             />
                           )}
-                          <span className="text-sm text-gray-500 dark:text-gray-400 truncate flex-1">
-                            {latestMessage.text}
-                          </span>
+                          <div className="text-sm text-gray-500 dark:text-gray-400 truncate flex-1 min-w-0">
+                            {latestMessage.text && latestMessage.text.includes("📷") ? (
+                              <span className="flex items-center gap-1 truncate">
+                                <Camera className="w-3.5 h-3.5 shrink-0 text-gray-400 dark:text-gray-400" />
+                                <span className="truncate">
+                                  {latestMessage.text.replace("📷", "").trim() || "image"}
+                                </span>
+                              </span>
+                            ) : latestMessage.text ? (
+                              <span className="truncate block">{latestMessage.text}</span>
+                            ) : (
+                              <span className="flex items-center gap-1 truncate">
+                                <Camera className="w-3.5 h-3.5 shrink-0 text-gray-400 dark:text-gray-400" />
+                                <span>image</span>
+                              </span>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>

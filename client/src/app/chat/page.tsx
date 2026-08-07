@@ -117,7 +117,12 @@ const ChatApp = () => {
           chat: {
             ...moveChat.chat,
             latestMessage: {
-              text: newMessage.text,
+              text:
+                newMessage.messageType === "image" || newMessage.image
+                  ? newMessage.text
+                    ? `📷 ${newMessage.text}`
+                    : "📷 Photo"
+                  : newMessage.text || (newMessage.image ? "📷 Photo" : ""),
               sender: newMessage.sender,
             },
             updatedAt: new Date().toString(),
