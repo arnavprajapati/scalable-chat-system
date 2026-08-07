@@ -3,7 +3,8 @@ import Loading from "@/components/Loading";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useAppData, user_service } from "@/context/AppContext";
 import axios from "axios";
-import { ArrowRight, Loader2, Mail } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Mail } from "lucide-react";
+import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
@@ -39,37 +40,48 @@ const LoginPage = () => {
   if (isAuth) return redirect("/chat");
   return (
     <div className="min-h-screen bg-transparent flex items-center justify-center p-4">
+      <Link
+        href="/"
+        className="fixed top-4 left-4 z-30 h-10 px-3 flex items-center gap-1.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#141414] hover:text-gray-900 dark:hover:text-white transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back
+      </Link>
+
       <div className="fixed top-4 right-4 z-30">
         <ThemeToggle />
       </div>
 
-      <div className="max-w-md w-full">
-        <div className="rounded-2xl bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-white/10 p-6 md:p-8">
-          <div className="text-center mb-8">
-            <div className="mx-auto w-16 h-16 rounded-2xl bg-gray-900 dark:bg-white flex items-center justify-center mb-6 shadow-md">
-              <Mail className="w-8 h-8 text-white dark:text-black" />
-            </div>
-            <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-3">
-              Welcome To ChatApp
-            </h1>
-            <p className="text-[15px] leading-relaxed text-gray-600 dark:text-gray-400">
-              Enter your email to continue your journey
-            </p>
+      <div className="w-full max-w-sm">
+        {/* Header sits outside the card so the card stays a tight, focused form */}
+        <div className="text-center mb-8">
+          <div className="mx-auto w-14 h-14 rounded-2xl bg-gray-900 dark:bg-white flex items-center justify-center mb-5">
+            <Mail className="w-7 h-7 text-white dark:text-black" />
           </div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+            Welcome back
+          </h1>
+          <p className="mt-2 text-[15px] text-gray-600 dark:text-gray-400">
+            Sign in with your email — no password needed.
+          </p>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="rounded-2xl bg-white dark:bg-[#0d0d0d] border border-gray-200 dark:border-white/10 shadow-xl shadow-gray-900/5 dark:shadow-black/40 p-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2"
+                className="block text-[13px] font-semibold text-gray-700 dark:text-gray-300 mb-2"
               >
-                Email Address
+                Email address
               </label>
               <input
                 type="email"
                 id="email"
-                className="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-[#141414] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-500 transition-colors focus:outline-none focus:border-gray-300 dark:focus:border-white/20"
-                placeholder="Enter Your email address"
+                autoComplete="email"
+                autoFocus
+                className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-[#141414] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/15 focus:border-gray-300 dark:focus:border-white/20"
+                placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -77,23 +89,27 @@ const LoginPage = () => {
             </div>
             <button
               type="submit"
-              className="cursor-pointer w-full bg-gray-900 text-white dark:bg-white dark:text-black py-3 px-4 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-white/20"
+              className="cursor-pointer w-full h-12 flex items-center justify-center gap-2 bg-gray-900 text-white dark:bg-white dark:text-black rounded-xl font-bold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-white/20"
               disabled={loading}
             >
               {loading ? (
-                <div className="flex items-center justify-center gap-2">
+                <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Sending Otp to your mail...
-                </div>
+                  Sending code...
+                </>
               ) : (
-                <div className="flex items-center justify-center gap-2">
-                  <span>Send Verification Code</span>
+                <>
+                  Send verification code
                   <ArrowRight className="w-5 h-5" />
-                </div>
+                </>
               )}
             </button>
           </form>
         </div>
+
+        <p className="mt-6 text-center text-xs text-gray-500 dark:text-gray-500">
+          We&apos;ll email you a one-time code. It expires in 5 minutes.
+        </p>
       </div>
     </div>
   );
