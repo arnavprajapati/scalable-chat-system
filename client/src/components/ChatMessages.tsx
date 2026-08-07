@@ -45,8 +45,7 @@ const ChatMessages = ({
               It&apos;s quiet in here
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-xs">
-              Suspiciously quiet. Choose a chat from the sidebar, or start a new
-              one with the + button.
+              Suspiciously quiet. Pick a chat or start a new one.
             </p>
           </div>
         ) : uniqueMessages.length === 0 ? (

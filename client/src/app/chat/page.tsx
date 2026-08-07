@@ -1,9 +1,9 @@
 "use client";
 import ChatSidebar from "@/components/ChatSidebar";
 import Loading from "@/components/Loading";
-import { chat_service, useAppData, User } from "@/context/AppContext";
+import { chat_service, Chats, useAppData, User } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import Cookies from "js-cookie";
 import axios from "axios";
@@ -53,6 +53,13 @@ const ChatApp = () => {
   );
 
   const router = useRouter();
+
+  // Mirrors `chats` so the socket handler can read the current list without
+  // re-subscribing every time a chat moves.
+  const chatsRef = useRef<Chats[] | null>(null);
+  useEffect(() => {
+    chatsRef.current = chats;
+  }, [chats]);
 
   useEffect(() => {
     if (!isAuth && !loading) {
@@ -276,7 +283,9 @@ const ChatApp = () => {
     socket?.on("newMessage", (message) => {
       console.log("Recieved new message:", message);
 
-      if (selectedUser === message.chatId) {
+      const isOpenChat = selectedUser === message.chatId;
+
+      if (isOpenChat) {
         setMessages((prev) => {
           const currentMessages = prev || [];
           const messageExists = currentMessages.some(
@@ -288,11 +297,21 @@ const ChatApp = () => {
           }
           return currentMessages;
         });
-
-        moveChatToTop(message.chatId, message, false);
-      } else {
-        moveChatToTop(message.chatId, message, true);
       }
+
+      // First message from someone new: the chat isn't in the sidebar yet, so
+      // there is nothing to move to the top. Pull the list from the server
+      // instead, otherwise it only shows up after a refresh.
+      const isKnownChat = chatsRef.current?.some(
+        (c) => c.chat._id === message.chatId
+      );
+
+      if (!isKnownChat) {
+        fetchChats();
+        return;
+      }
+
+      moveChatToTop(message.chatId, message, !isOpenChat);
     });
 
     socket?.on("messagesSeen", (data) => {
@@ -345,6 +364,10 @@ const ChatApp = () => {
       socket?.off("userTyping");
       socket?.off("userStoppedTyping");
     };
+    // fetchChats is intentionally out of the deps: it captures nothing mutable,
+    // and its identity changes on every provider render, which would re-subscribe
+    // these listeners on every incoming message.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, selectedUser, setChats, loggedInUser?._id]);
 
   useEffect(() => {

@@ -94,7 +94,7 @@ const ChatHeader = ({
                   No conversation selected
                 </h2>
                 <p className="text-[13px] text-gray-500 dark:text-gray-400">
-                  Pick one from the sidebar — they&apos;re all waiting patiently
+                  Pick someone and say hi
                 </p>
               </div>
             </div>
