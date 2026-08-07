@@ -38,14 +38,27 @@ const ChatMessages = ({
       <div className="h-full overflow-y-auto px-4 md:px-6 py-4 space-y-2 custom-scroll">
         {!selectedUser ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-6">
-            <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-[#141414] flex items-center justify-center mb-4">
-              <MessagesSquare className="w-7 h-7 text-gray-500 dark:text-gray-400" />
+            <div className="w-20 h-20 rounded-2xl bg-gray-100 dark:bg-[#141414] border border-gray-200 dark:border-white/10 flex items-center justify-center mb-5">
+              <MessagesSquare className="w-9 h-9 text-gray-500 dark:text-gray-400" />
             </div>
-            <p className="font-bold text-gray-900 dark:text-white">
-              No chat selected
+            <p className="text-lg font-bold text-gray-900 dark:text-white">
+              It&apos;s quiet in here
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Please select a user to start chatting
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-xs">
+              Suspiciously quiet. Choose a chat from the sidebar, or start a new
+              one with the + button.
+            </p>
+          </div>
+        ) : uniqueMessages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center px-6">
+            <div className="w-20 h-20 rounded-2xl bg-gray-100 dark:bg-[#141414] border border-gray-200 dark:border-white/10 flex items-center justify-center mb-5">
+              <MessagesSquare className="w-9 h-9 text-gray-500 dark:text-gray-400" />
+            </div>
+            <p className="text-lg font-bold text-gray-900 dark:text-white">
+              No messages yet
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-xs">
+              Say hello to start the conversation.
             </p>
           </div>
         ) : (
@@ -62,7 +75,9 @@ const ChatMessages = ({
                   key={uniqueKey}
                 >
                   <div
-                    className={`px-4 py-2.5 max-w-[75%] text-[15px] leading-relaxed ${
+                    className={`max-w-[75%] text-[15px] leading-relaxed ${
+                      e.messageType === "image" ? "p-1.5" : "px-4 py-2.5"
+                    } ${
                       isSentByMe
                         ? "bg-gray-900 text-white dark:bg-white dark:text-black rounded-2xl rounded-br-md"
                         : "bg-gray-100 dark:bg-[#141414] text-gray-900 dark:text-white border border-gray-200 dark:border-white/10 rounded-2xl rounded-bl-md"
@@ -73,12 +88,16 @@ const ChatMessages = ({
                         <img
                           src={e.image.url}
                           alt="shared image"
-                          className="max-w-full h-auto rounded-xl"
+                          className="max-h-[280px] max-w-[260px] w-auto object-cover rounded-xl"
                         />
                       </div>
                     )}
 
-                    {e.text && <p className="mt-1">{e.text}</p>}
+                    {e.text && (
+                      <p className={e.messageType === "image" ? "mt-1 px-2.5 pb-1" : ""}>
+                        {e.text}
+                      </p>
+                    )}
                   </div>
 
                   <div

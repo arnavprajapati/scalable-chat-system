@@ -62,6 +62,12 @@ const ChatApp = () => {
 
   const handleLogout = () => logoutUser();
 
+  const closeChat = () => {
+    setSelectedUser(null);
+    setUser(null);
+    setMessages(null);
+  };
+
   async function fetchChat() {
     const token = Cookies.get("token");
     try {
@@ -388,6 +394,7 @@ const ChatApp = () => {
           setSidebarOpen={setSiderbarOpen}
           isTyping={isTyping}
           onlineUsers={onlineUsers}
+          onCloseChat={closeChat}
         />
 
         <ChatMessages

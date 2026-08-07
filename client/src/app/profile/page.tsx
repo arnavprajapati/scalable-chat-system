@@ -7,8 +7,9 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Loading from "@/components/Loading";
 import ThemeToggle from "@/components/ThemeToggle";
-import { ArrowLeft, AtSign, Save, User, UserCircle } from "lucide-react";
+import { ArrowLeft, AtSign, Camera, Loader2, Save, User } from "lucide-react";
 import { validateUsername } from "@/lib/username";
+import Avatar from "@/components/Avatar";
 
 type UsernameStatus =
   | { state: "idle" }
@@ -28,8 +29,10 @@ const ProfilePage = () => {
     state: "idle",
   });
   const [savingUsername, setSavingUsername] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const checkIdRef = useRef(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
 
@@ -63,6 +66,52 @@ const ProfilePage = () => {
       setIsEdit(false);
     } catch (error: any) {
       toast.error(error.response?.data?.message || error.message || "Failed to update profile");
+    }
+  };
+
+  const avatarChangeHandler = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    // Reset immediately so picking the same file twice still fires onChange.
+    e.target.value = "";
+    if (!file) return;
+
+    setUploadingAvatar(true);
+    const token = Cookies.get("token");
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      const { data } = await axios.post(
+        `${user_service}/api/v1/update/avatar`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      // The whole user document is signed into the JWT, so the new avatar only
+      // survives a reload if we swap the cookie too.
+      Cookies.set("token", data.token, {
+        expires: 15,
+        secure: false,
+        path: "/",
+      });
+
+      toast.success(data.message);
+      setUser(data.user);
+    } catch (error: any) {
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to update profile picture"
+      );
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -176,19 +225,44 @@ const ProfilePage = () => {
         <div className="rounded-2xl bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-white/10 overflow-hidden">
           <div className="bg-gray-100 dark:bg-[#0a0a0a] p-6 border-b border-gray-200 dark:border-white/10">
             <div className="flex items-center gap-6">
-              <div className="relative">
-                <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-[#1a1a1a] flex items-center justify-center shadow-md">
-                  <UserCircle className="w-12 h-12 text-gray-500 dark:text-gray-400" />
+              <button
+                type="button"
+                aria-label="Change profile picture"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingAvatar}
+                className="cursor-pointer relative group rounded-full shadow-md disabled:cursor-not-allowed"
+              >
+                <Avatar user={user} size="lg" />
+                <div
+                  className={`absolute inset-0 rounded-full bg-black/50 flex items-center justify-center transition-opacity ${
+                    uploadingAvatar
+                      ? "opacity-100"
+                      : "opacity-0 group-hover:opacity-100"
+                  }`}
+                >
+                  {uploadingAvatar ? (
+                    <Loader2 className="w-6 h-6 text-white animate-spin" />
+                  ) : (
+                    <Camera className="w-6 h-6 text-white" />
+                  )}
                 </div>
-                <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-emerald-500 dark:bg-emerald-400 ring-2 ring-gray-100 dark:ring-[#0a0a0a]"></div>
-              </div>
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={avatarChangeHandler}
+              />
               <div className="flex-1 min-w-0">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1 truncate">
                   {user?.name || "User"}
                 </h2>
-                <p className="text-xs text-gray-500 dark:text-gray-500">
-                  Active now
-                </p>
+                {user?.username && (
+                  <p className="text-xs text-gray-500 dark:text-gray-500 truncate">
+                    @{user.username}
+                  </p>
+                )}
               </div>
             </div>
           </div>

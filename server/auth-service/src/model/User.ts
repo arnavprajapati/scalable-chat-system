@@ -5,6 +5,7 @@ export interface IUser extends Document {
   email: string;
   username?: string;
   usernameLower?: string;
+  avatar?: { url: string; public_id: string };
 }
 
 const schema: Schema<IUser> = new Schema(
@@ -23,6 +24,10 @@ const schema: Schema<IUser> = new Schema(
     },
     usernameLower: {
       type: String,
+    },
+    avatar: {
+      url: { type: String },
+      public_id: { type: String },
     },
   },
   {

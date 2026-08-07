@@ -1,12 +1,14 @@
 import { User } from "@/context/AppContext";
-import { Menu, UserCircle } from "lucide-react";
+import { Menu, MessagesSquare, X } from "lucide-react";
 import React from "react";
+import Avatar from "./Avatar";
 
 interface ChatHeaderProps {
   user: User | null;
   setSidebarOpen: (open: boolean) => void;
   isTyping: boolean;
   onlineUsers: string[];
+  onCloseChat: () => void;
 }
 
 const ChatHeader = ({
@@ -14,6 +16,7 @@ const ChatHeader = ({
   setSidebarOpen,
   isTyping,
   onlineUsers,
+  onCloseChat,
 }: ChatHeaderProps) => {
   const isOnlineUser = user && onlineUsers.includes(user._id);
   return (
@@ -34,17 +37,7 @@ const ChatHeader = ({
         <div className="flex items-center gap-3">
           {user ? (
             <>
-              <div className="relative shrink-0">
-                <div className="w-11 h-11 rounded-full bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center">
-                  <UserCircle className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                </div>
-                {/* online user setup */}
-                {isOnlineUser && (
-                  <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 dark:bg-emerald-400 ring-2 ring-white dark:ring-[#0f0f0f]">
-                    <span className="absolute inset-0 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-ping opacity-75"></span>
-                  </span>
-                )}
-              </div>
+              <Avatar user={user} size="md" online={!!isOnlineUser} />
 
               {/* user info */}
               <div className="flex-1 min-w-0">
@@ -52,15 +45,11 @@ const ChatHeader = ({
                   {user.name}
                 </h2>
 
-                {user.username && (
-                  <p className="text-[13px] text-gray-500 dark:text-gray-400 truncate">
-                    @{user.username}
-                  </p>
-                )}
-
-                <div className="flex items-center gap-2">
+                {/* min-h keeps the header from jumping as this line swaps
+                    between the typing indicator and the status line */}
+                <div className="flex items-center gap-2 min-h-[20px]">
                   {isTyping ? (
-                    <div className="flex items-center gap-2">
+                    <>
                       <div className="flex gap-1">
                         <div className="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce"></div>
                         <div
@@ -75,35 +64,37 @@ const ChatHeader = ({
                       <span className="text-[13px] font-medium text-gray-600 dark:text-gray-400">
                         typing...
                       </span>
-                    </div>
+                    </>
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-2 h-2 rounded-full ${
-                          isOnlineUser
-                            ? "bg-emerald-500 dark:bg-emerald-400"
-                            : "bg-gray-400 dark:bg-gray-600"
-                        }`}
-                      ></div>
-                      <span className="text-[13px] font-medium text-gray-500 dark:text-gray-400">
-                        {isOnlineUser ? "Online" : "Offline"}
-                      </span>
+                    <div className="text-[13px] text-gray-500 dark:text-gray-400 truncate">
+                      {user.username && `@${user.username} · `}
+                      {isOnlineUser ? "Online" : "Offline"}
                     </div>
                   )}
                 </div>
               </div>
+
+              {/* close the open chat and go back to the blank state */}
+              <button
+                aria-label="Close chat"
+                title="Close chat"
+                onClick={onCloseChat}
+                className="cursor-pointer shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#1f1f1f] hover:text-gray-900 dark:hover:text-white transition-colors active:scale-95 mr-12 sm:mr-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </>
           ) : (
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 shrink-0 rounded-full bg-gray-100 dark:bg-[#141414] flex items-center justify-center">
-                <UserCircle className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                <MessagesSquare className="w-6 h-6 text-gray-500 dark:text-gray-400" />
               </div>
               <div className="min-w-0">
                 <h2 className="text-lg font-bold leading-tight text-gray-900 dark:text-white">
-                  Select a conversation
+                  No conversation selected
                 </h2>
                 <p className="text-[13px] text-gray-500 dark:text-gray-400">
-                  Choose a chat from the sidebar to start messaging
+                  Pick one from the sidebar — they&apos;re all waiting patiently
                 </p>
               </div>
             </div>

@@ -20,6 +20,7 @@ export interface User {
   name: string;
   email: string;
   username?: string;
+  avatar?: { url: string; public_id: string };
 }
 
 export interface Chat {

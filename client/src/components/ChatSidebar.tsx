@@ -6,12 +6,12 @@ import {
   MessageCircle,
   Plus,
   Search,
-  UserCircle,
   X,
 } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
 import ThemeToggle from "./ThemeToggle";
+import Avatar from "./Avatar";
 
 interface ChatSidebarProps {
   sidebarOpen: boolean;
@@ -28,6 +28,16 @@ interface ChatSidebarProps {
   onlineUsers: string[];
 }
 
+const EmptyState = ({ title, hint }: { title: string; hint: string }) => (
+  <div className="flex flex-col items-center justify-center flex-1 text-center px-6">
+    <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-[#141414] flex items-center justify-center mb-4">
+      <MessageCircle className="w-7 h-7 text-gray-500 dark:text-gray-400" />
+    </div>
+    <p className="font-bold text-gray-900 dark:text-white">{title}</p>
+    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{hint}</p>
+  </div>
+);
+
 const ChatSidebar = ({
   sidebarOpen,
   setShowAllUsers,
@@ -43,6 +53,21 @@ const ChatSidebar = ({
   onlineUsers,
 }: ChatSidebarProps) => {
   const [searchQuery, setSearchQuery] = useState("");
+
+  const query = searchQuery.trim().toLowerCase();
+
+  const matches = (name?: string, username?: string) =>
+    !query ||
+    !!name?.toLowerCase().includes(query) ||
+    !!username?.toLowerCase().includes(query);
+
+  const filteredUsers = users?.filter(
+    (u) => u._id !== loggedInUser?._id && matches(u.name, u.username)
+  );
+
+  const filteredChats = chats?.filter((c) =>
+    matches(c.user?.name, c.user?.username)
+  );
 
   return (
     <aside
@@ -91,46 +116,43 @@ const ChatSidebar = ({
 
       {/* content */}
       <div className="flex-1 overflow-hidden px-3 py-3">
-        {showAllUsers ? (
-          <div className="flex flex-col gap-3 h-full">
-            <div className="relative shrink-0">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search Users..."
-                aria-label="Search users"
-                className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-gray-100 dark:bg-[#141414] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors focus:outline-none focus:border-gray-300 dark:focus:border-white/20"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+        <div className="flex flex-col gap-3 h-full">
+          {/* search — filters by name and username in both modes */}
+          <div className="relative shrink-0">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
+            <input
+              type="text"
+              placeholder={
+                showAllUsers ? "Search users..." : "Search chats..."
+              }
+              aria-label={showAllUsers ? "Search users" : "Search chats"}
+              className="w-full pl-11 pr-10 py-2.5 rounded-xl bg-gray-100 dark:bg-[#141414] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors focus:outline-none focus:border-gray-300 dark:focus:border-white/20"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                aria-label="Clear search"
+                onClick={() => setSearchQuery("")}
+                className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
 
-            {/* users list */}
-            <div className="flex flex-col gap-1 overflow-y-auto flex-1 pb-4 custom-scroll">
-              {users
-                ?.filter((u) => {
-                  const query = searchQuery.toLocaleLowerCase();
-                  return (
-                    u._id !== loggedInUser?._id &&
-                    (u.name.toLowerCase().includes(query) ||
-                      !!u.username?.toLowerCase().includes(query))
-                  );
-                })
-                .map((u) => (
+          {showAllUsers ? (
+            /* users list */
+            filteredUsers && filteredUsers.length > 0 ? (
+              <div className="flex flex-col gap-1 overflow-y-auto flex-1 pb-4 custom-scroll">
+                {filteredUsers.map((u) => (
                   <button
                     key={u._id}
                     className="cursor-pointer w-full text-left px-4 py-3 rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-[#141414]"
                     onClick={() => createChat(u)}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="relative shrink-0">
-                        <div className="w-11 h-11 rounded-full bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center">
-                          <UserCircle className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                        </div>
-                        {onlineUsers.includes(u._id) && (
-                          <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 dark:bg-emerald-400 ring-2 ring-white dark:ring-[#0f0f0f]" />
-                        )}
-                      </div>
+                      <Avatar user={u} size="md" online={onlineUsers.includes(u._id)} />
 
                       <div className="flex-1 min-w-0">
                         <span className="block font-bold text-gray-900 dark:text-white truncate">
@@ -145,11 +167,20 @@ const ChatSidebar = ({
                     </div>
                   </button>
                 ))}
-            </div>
-          </div>
-        ) : chats && chats.length > 0 ? (
-          <div className="flex flex-col gap-1 overflow-y-auto h-full pb-4 custom-scroll">
-            {chats.map((chat) => {
+              </div>
+            ) : (
+              <EmptyState
+                title={query ? "No users found" : "No users yet"}
+                hint={
+                  query
+                    ? `Nothing matches "${searchQuery}"`
+                    : "Invite someone to get started"
+                }
+              />
+            )
+          ) : filteredChats && filteredChats.length > 0 ? (
+            <div className="flex flex-col gap-1 overflow-y-auto flex-1 pb-4 custom-scroll">
+              {filteredChats.map((chat) => {
               const latestMessage = chat.chat.latestMessage;
               const isSelected = selectedUser === chat.chat._id;
               const isSentByMe = latestMessage?.sender === loggedInUser?._id;
@@ -169,15 +200,11 @@ const ChatSidebar = ({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="relative shrink-0">
-                      <div className="w-11 h-11 rounded-full bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center">
-                        <UserCircle className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                        {/* onlineuser ka work hai */}
-                      </div>
-                      {onlineUsers.includes(chat.user._id) && (
-                        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 dark:bg-emerald-400 ring-2 ring-white dark:ring-[#0f0f0f]" />
-                      )}
-                    </div>
+                    <Avatar
+                      user={chat.user}
+                      size="md"
+                      online={onlineUsers.includes(chat.user._id)}
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2 mb-0.5">
                         <span className="font-bold text-gray-900 dark:text-white truncate">
@@ -215,18 +242,16 @@ const ChatSidebar = ({
             })}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center px-6">
-            <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-[#141414] flex items-center justify-center mb-4">
-              <MessageCircle className="w-7 h-7 text-gray-500 dark:text-gray-400" />
-            </div>
-            <p className="font-bold text-gray-900 dark:text-white">
-              No conversation yet
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Start a new chat to begin messaging
-            </p>
-          </div>
+          <EmptyState
+            title={query ? "No chats found" : "No conversation yet"}
+            hint={
+              query
+                ? `Nothing matches "${searchQuery}"`
+                : "Start a new chat to begin messaging"
+            }
+          />
         )}
+        </div>
       </div>
 
       {/* footer */}
@@ -235,9 +260,7 @@ const ChatSidebar = ({
           href={"/profile"}
           className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-[#1f1f1f]"
         >
-          <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 flex items-center justify-center">
-            <UserCircle className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-          </div>
+          <Avatar user={loggedInUser} size="sm" />
           <span className="text-base font-bold text-gray-900 dark:text-white">
             Profile
           </span>

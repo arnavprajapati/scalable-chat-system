@@ -6,10 +6,12 @@ import {
   loginUser,
   myProfile,
   setUsername,
+  updateAvatar,
   updateName,
   verifyUser,
 } from "../controllers/user.js";
 import { isAuth } from "../middleware/isAuth.js";
+import { upload } from "../middleware/multer.js";
 
 const router = express.Router();
 
@@ -21,5 +23,6 @@ router.get("/username/check", isAuth, checkUsername);
 router.post("/username/set", isAuth, setUsername);
 router.get("/user/:id", getAUser);
 router.post("/update/user", isAuth, updateName);
+router.post("/update/avatar", isAuth, upload.single("avatar"), updateAvatar);
 
 export default router;

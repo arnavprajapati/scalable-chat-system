@@ -5,6 +5,33 @@ import { redisClient } from "../index.js";
 import { AuthenticatedRequest } from "../middleware/isAuth.js";
 import { User } from "../model/User.js";
 import { normalizeUsername, validateUsername } from "../config/username.js";
+import cloudinary from "../config/cloudinary.js";
+
+const uploadToCloudinary = (
+  fileBuffer: Buffer,
+  folder: string,
+  transformation: Record<string, unknown>[]
+): Promise<{ url: string; public_id: string }> => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder, transformation } as any,
+      (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+        if (!result) {
+          return reject(new Error("Upload to Cloudinary returned no result"));
+        }
+        resolve({
+          url: result.secure_url,
+          public_id: result.public_id,
+        });
+      }
+    );
+    uploadStream.end(fileBuffer);
+  });
+};
+
 
 export const loginUser = TryCatch(async (req, res) => {
   const { email } = req.body;
@@ -105,6 +132,44 @@ export const updateName = TryCatch(async (req: AuthenticatedRequest, res) => {
 
   res.json({
     message: "User Updated",
+    user,
+    token,
+  });
+});
+
+export const updateAvatar = TryCatch(async (req: AuthenticatedRequest, res) => {
+  const user = await User.findById(req.user?._id);
+
+  if (!user) {
+    res.status(404).json({
+      message: "Please login",
+    });
+    return;
+  }
+
+  if (!req.file) {
+    res.status(400).json({
+      message: "Image is required",
+    });
+    return;
+  }
+
+  // Drop the previous upload first so Cloudinary doesn't accumulate orphans.
+  if (user.avatar?.public_id) {
+    await cloudinary.uploader.destroy(user.avatar.public_id);
+  }
+
+  user.avatar = await uploadToCloudinary(req.file.buffer, "user-avatars", [
+    { width: 400, height: 400, crop: "fill", gravity: "face" },
+    { quality: "auto" },
+  ]);
+
+  await user.save();
+
+  const token = generateToken(user);
+
+  res.json({
+    message: "Profile picture updated",
     user,
     token,
   });
